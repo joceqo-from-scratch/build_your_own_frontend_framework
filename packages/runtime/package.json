@@ -1,0 +1,17 @@
+{
+  "name": "fwk",
+  "version": "1.0.0",
+  "main": "dist/fe-fwk.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "description": "",
+  "dependencies": {
+    "rollup": "^4.35.0"
+  }
+}
