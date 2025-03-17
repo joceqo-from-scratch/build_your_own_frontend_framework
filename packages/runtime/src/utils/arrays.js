@@ -157,7 +157,7 @@ export function arraysDiffSequence(
 
 		// noop case
     if(array.isNoop(index, newArray)){
-      sequence.push(array.isNoop(index))
+      sequence.push(array.noopItem(index, newArray))
       continue
     }
 
@@ -165,7 +165,7 @@ export function arraysDiffSequence(
 
 		// addition case
     if(array.isAddition(item, index)){
-      sequence.push(array.isAddition(item, index))
+      sequence.push(array.addItem(item, index))
       continue
     }
 

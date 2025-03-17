@@ -1,7 +1,15 @@
 export function addEventListener(eventName, handler, el) {
-  el.addEventListener(eventName, handler)
-  return handler
-}
+  // Function that wraps the original handler
+   function boundHandler(event) {
+  // -- snip -- //
+ 
+     handler(event)
+   }
+ 
+   el.addEventListener(eventName, boundHandler)
+ 
+   return boundHandler
+ }
 
 export function addEventListeners(listeners = {}, el) {
   const addedListeners = {}
