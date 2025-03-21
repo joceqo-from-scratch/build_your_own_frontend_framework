@@ -36,6 +36,11 @@ export function patchDOM(oldVdom, newVdom, parentEl, hostComponent = null) {
 			patchElement(oldVdom, newVdom, hostComponent);
 			break;
 		}
+
+    case DOM_TYPES.COMPONENT:{
+      patchComponent(oldVdom, newVdom)       
+      break;
+    }
 	}
 
 	patchChildren(oldVdom, newVdom, hostComponent);
@@ -82,6 +87,16 @@ function patchElement(oldVdom, newVdom, hostComponent) {
 	patchClasses(el, oldClass, newClass);
 	patchStyles(el, oldStyle, newStyle);
 	newVdom.listeners = patchEvents(el, oldListeners, oldEvents, newEvents, hostComponent);
+}
+
+function patchComponent(oldVdom, newVdom) {
+  const { component } = oldVdom
+  const { props } = newVdom
+
+  component.updateProps(props)
+
+  newVdom.component = component
+  newVdom.el = component.firstElement
 }
 
 function patchAttrs(el, oldAttrs, newAttrs) {
