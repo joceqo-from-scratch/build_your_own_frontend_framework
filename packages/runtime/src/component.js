@@ -1,18 +1,29 @@
 import { destroyDOM } from './destroy-dom'
 import { mountDOM } from './mount-dom'
+import { Dispatcher } from './dispatcher'
 import { patchDOM } from './patch-dom'
 import { DOM_TYPES, extractChildren } from './h'
+// biome-ignore lint/suspicious/noShadowRestrictedNames: <explanation>
 import { hasOwnProperty } from './utils/objects'
+import equal from 'fast-deep-equal'
+
 
 export function defineComponent({ render, state, ...methods }) {
   class Component {
     #isMounted = false
     #vdom = null
     #hostEl = null
+    #eventHandlers = null
+    #parentComponent = null
+    #dispatcher = new Dispatcher()
+    #subscriptions = []
 
-    constructor(props = {}) {
+
+    constructor(props = {}, eventHandlers, parentComponent) {
       this.props = props
       this.state = state ? state(props) : {}
+      this.#eventHandlers = eventHandlers
+      this.#parentComponent = parentComponent
     }
 
     get elements() {
@@ -46,7 +57,11 @@ export function defineComponent({ render, state, ...methods }) {
     }
 
     updateProps(props) {
-      this.props = { ...this.props, ...props }      
+      const newProps = { ...this.props, ...props }
+      if(equal(this.props, newProps)){
+        return
+      }
+      this.props = newProps
       this.#patch()                                
     }
 
@@ -66,6 +81,7 @@ export function defineComponent({ render, state, ...methods }) {
 
       this.#vdom = this.render()
       mountDOM(this.#vdom, hostEl, index, this)
+      this.#wireEventHandlers()
 
       this.#hostEl = hostEl
       this.#isMounted = true
@@ -77,6 +93,7 @@ export function defineComponent({ render, state, ...methods }) {
       }
 
       destroyDOM(this.#vdom)
+      this.#subscriptions.forEach(unsuscribe =>  unsuscribe())
 
       this.#vdom = null
       this.#hostEl = null
@@ -91,6 +108,28 @@ export function defineComponent({ render, state, ...methods }) {
       const vdom = this.render()
       this.#vdom = patchDOM(this.#vdom, vdom, this.#hostEl, this)
     }
+
+    #wireEventHandlers() {
+      this.#subscriptions = Object.entries(this.#eventHandlers).map(     
+        ([eventName, handler]) =>
+          this.#wireEventHandler(eventName, handler)
+      )
+    }
+
+    #wireEventHandler(eventName, handler) {
+      return this.#dispatcher.subscribe(eventName, (payload) => {
+        if (this.#parentComponent) {
+          handler.call(this.#parentComponent, payload)     
+        } else {
+          handler(payload) 
+        }
+      })
+    }
+
+    emit(eventName, payload) {
+      this.#dispatcher.dispatch(eventName, payload)
+    }
+
   }
 
   for (const methodName in methods) {
