@@ -19,7 +19,7 @@ export function defineComponent({ render, state, ...methods }) {
     #subscriptions = []
 
 
-    constructor(props = {}, eventHandlers, parentComponent) {
+    constructor(props = {}, eventHandlers = {}, parentComponent) {
       this.props = props
       this.state = state ? state(props) : {}
       this.#eventHandlers = eventHandlers
@@ -110,18 +110,17 @@ export function defineComponent({ render, state, ...methods }) {
     }
 
     #wireEventHandlers() {
-      this.#subscriptions = Object.entries(this.#eventHandlers).map(     
-        ([eventName, handler]) =>
-          this.#wireEventHandler(eventName, handler)
+      this.#subscriptions = Object.entries(this.#eventHandlers).map(
+        ([eventName, handler]) => this.#wireEventHandler(eventName, handler)
       )
     }
 
     #wireEventHandler(eventName, handler) {
       return this.#dispatcher.subscribe(eventName, (payload) => {
         if (this.#parentComponent) {
-          handler.call(this.#parentComponent, payload)     
+          handler.call(this.#parentComponent, payload)
         } else {
-          handler(payload) 
+          handler(payload)
         }
       })
     }
@@ -139,7 +138,7 @@ export function defineComponent({ render, state, ...methods }) {
       )
     }
 
-    Component.prototype[methodName] = methods[methodName]     
+    Component.prototype[methodName] = methods[methodName]
   }
 
   return Component
